@@ -6,30 +6,41 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.todo.adapters.TodoAdapter
-import com.example.todo.models.Todo
+import com.example.todo.models.ToDo
+import com.example.todo.viewModels.TodoViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var todoAdapter: TodoAdapter
+    private val toDoViewModel by lazy { ViewModelProvider(this).get(TodoViewModel::class.java) }
+
+    private lateinit var toDoAdapter: TodoAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        todoAdapter = TodoAdapter(mutableListOf())
+        toDoAdapter = TodoAdapter(mutableListOf())
 
-        rvTodos.adapter = todoAdapter
+        rvTodos.adapter = toDoAdapter
         rvTodos.layoutManager = LinearLayoutManager(this)
 
-        btnAddTodo.setOnClickListener {
-            val todoTitle = etTodo.text.toString()
+        toDoViewModel.getTodoList().observe(this, Observer {
+            it?.let {
+                toDoAdapter.refreshTodoList(it)
+            }
+        })
 
-            if (todoTitle.isNotEmpty()) {
-                val todo = Todo(todoTitle)
-                todoAdapter.addTodo(todo)
-                etTodo.text.clear()
+        btnAddTodo.setOnClickListener {
+            val toDoTitle = etToDo.text.toString()
+
+            if (toDoTitle.isNotEmpty()) {
+                val toDo = ToDo(toDoTitle)
+                toDoAdapter.addTodo(toDo)
+                etToDo.text.clear()
             }
         }
     }
@@ -44,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.btnDeleteDoneItems -> {
-                todoAdapter.deleteDoneTodos()
+                toDoAdapter.deleteDoneTodos()
                 Toast.makeText(this, "Выполненные задачи удалены", Toast.LENGTH_LONG).show()
                 true
             }

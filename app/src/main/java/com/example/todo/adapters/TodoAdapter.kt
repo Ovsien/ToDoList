@@ -8,50 +8,56 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todo.R
-import com.example.todo.models.Todo
+import com.example.todo.models.ToDo
 import kotlinx.android.synthetic.main.item_todo.view.*
 
 class TodoAdapter(
-    var todoList: MutableList<Todo>
-) : RecyclerView.Adapter<TodoAdapter.TodoViewHolder>() {
+    var toDoList: MutableList<ToDo>
+) : RecyclerView.Adapter<TodoAdapter.ToDoViewHolder>() {
 
-    inner class TodoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    inner class ToDoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ToDoViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_todo, parent, false)
-        return TodoViewHolder(view)
+        return ToDoViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
-        val currentTask = todoList[position]
+    override fun onBindViewHolder(holder: ToDoViewHolder, position: Int) {
+        val currentTask = toDoList[position]
 
         holder.itemView.apply {
-            tvTask.text = todoList[position].task
-            cbDone.isChecked = todoList[position].isChecked
-            crossOut(tvTask, currentTask.isChecked)
+            tvTask.text = toDoList[position].task
+            cbDone.isChecked = toDoList[position].isChecked
+            crossOutCompletedTask(tvTask, currentTask.isChecked)
             cbDone.setOnCheckedChangeListener { _, isChecked ->
-                crossOut(tvTask, isChecked)
+                crossOutCompletedTask(tvTask, isChecked)
                 currentTask.isChecked = !currentTask.isChecked
             }
         }
     }
 
-    override fun getItemCount() = todoList.size
+    override fun getItemCount() = toDoList.size
 
-    fun addTodo(todo: Todo) {
-        todoList.add(todo)
-        notifyItemInserted(todoList.size - 1)
+    @SuppressLint("NotifyDataSetChanged")
+    fun refreshTodoList(toDos: MutableList<ToDo>) {
+        this.toDoList = toDos
+        notifyDataSetChanged()
+    }
+
+    fun addTodo(toDo: ToDo) {
+        toDoList.add(toDo)
+        notifyItemInserted(toDoList.size - 1)
     }
 
     @SuppressLint("NotifyDataSetChanged")
     fun deleteDoneTodos() {
-        todoList.removeAll { todo ->
+        toDoList.removeAll { todo ->
             todo.isChecked
         }
         notifyDataSetChanged()
     }
 
-    private fun crossOut(tvTask: TextView, isChecked: Boolean) {
+    private fun crossOutCompletedTask(tvTask: TextView, isChecked: Boolean) {
         if (isChecked) {
             tvTask.paintFlags = tvTask.paintFlags or STRIKE_THRU_TEXT_FLAG
         } else {
